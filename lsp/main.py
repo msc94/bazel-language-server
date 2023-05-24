@@ -16,8 +16,6 @@ from pygls.server import LanguageServer
 logging.basicConfig(level=logging.DEBUG, filename="/tmp/lsp.log")
 server = LanguageServer("bazel-language-server", "v0.1")
 
-# https://microsoft.github.io/language-server-protocol/specifications/lsp/3.17/specification/#textDocument_definition
-
 
 def extract_target(line: str, cursor_pos: int) -> str:
     logging.info(f"Extracting target from {line}, pos {cursor_pos}")
@@ -39,6 +37,7 @@ def extract_target(line: str, cursor_pos: int) -> str:
 
 @server.feature(TEXT_DOCUMENT_DEFINITION)
 def definitions(params: DefinitionParams) -> Definition:
+    # https://microsoft.github.io/language-server-protocol/specifications/lsp/3.17/specification/#textDocument_definition
     logging.info("Handling definition request")
 
     document = server.workspace.get_document(params.text_document.uri)
