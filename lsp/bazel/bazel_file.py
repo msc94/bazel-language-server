@@ -23,6 +23,9 @@ class BazelFile:
         self._ast = ast.parse(contents)
 
     def get_context(self, row, column) -> BazelFileContext:
+        # Note that ast lines are 1-indexed, we take 0-indexed line numbers
+        row += 1
+
         node_under_cursor = self._find_deepest_node_at_position(row, column)
 
         if not node_under_cursor:
