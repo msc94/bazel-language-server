@@ -21,7 +21,6 @@ class BazelFileContext:
 class BazelFile:
     def __init__(self, contents):
         self._ast = ast.parse(contents)
-        logging.debug(f"Bazel file AST:\n{ast.dump(self._ast, indent=4)}")
 
     def get_context(self, row, column) -> BazelFileContext:
         node_under_cursor = self._find_deepest_node_at_position(row, column)
@@ -46,18 +45,18 @@ class BazelFile:
         while nodes:
             node = nodes.popleft()
 
-            for child in ast.iter_child_nodes(node):
+            children = list(ast.iter_child_nodes(node))
+
+            for child in children:
                 # Add information about parent
                 child.parent = node
                 # Visit children next
                 nodes.append(child)
 
             if hasattr(node, "lineno") and hasattr(node, "col_offset"):
-                if self._position_over_node(node, row, column):
-                    children = list(ast.iter_child_nodes(node))
-                    if len(children) == 0:
-                        # We have a node under the cursor and it has no children -> return
-                        return node
+                if self._position_over_node(node, row, column) and len(children) == 0:
+                    # We have a node under the cursor and it has no children -> return
+                    return node
 
         return None
 
