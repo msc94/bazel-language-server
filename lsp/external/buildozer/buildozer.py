@@ -1,66 +1,109 @@
 import subprocess
 
-
-class Buildozer:
-    def __init__(self, buildozer_path):
+class BazelBuildozerWrapper:
+    def __init__(self, workspace_path, buildozer_path):
+        self.workspace_path = workspace_path
         self.buildozer_path = buildozer_path
 
-    def __run_command(self, workspace, target, command):
-        print(f"{self.buildozer_path}  {command} {target}")
-        subprocess.run([self.buildozer_path, command, target], cwd = workspace, check=True)
+    def execute_command(self, command, target):
+        full_command = [self.buildozer_path] + [command] + [target]
+        print(' '.join(full_command))
+        try:
+            output = subprocess.run(full_command, cwd=self.workspace_path, capture_output=True, check=True)
+            print(output.stdout)
+        except subprocess.CalledProcessError as e:
+            print(e.stderr)
 
-    def execute_cmd(self, workspace, target, cmd):
-        self.__run_command(workspace, target, cmd)
+    def run_buildozer_command(self, command, target):
+        self.execute_command(command, target)
 
-    class Command:
-        # add <attr> <value(s)>: Adds value(s) to a list attribute of a rule. If a value is already present in the list, it is not added.
-        @staticmethod
-        def add(attr, values):
-            return f"add {attr} {values}"
+    def add_attribute_value(self, target, attribute, value):
+        command = f"add {attribute} {value}"
+        self.execute_command(command, target)
 
-        # new_load <path> <[to=]from(s)>: Add a load statement for the given path, importing the symbols. Before using this, make sure to run buildozer 'fix movePackageToTop'. Afterwards, consider running buildozer 'fix unusedLoads'.
-        @staticmethod
-        def new_load(path, froms:str):
-            return f"new_load {path} {froms.join(', ')}"
+    def replace_attribute_value(self, target, attribute, old_value, new_value):
+        command = f"replace {attribute} {old_value} {new_value}"
+        self.execute_command(command, target)
 
-        # replace <attr> <old_value> <new_value>: Replaces old_value with new_value in the list attr. Wildcard * matches all attributes. Lists not containing old_value are not modified.
-        @staticmethod
-        def replace_attr(attr, old, new):
-            return f"replace {attr} {old} {new}"
+    def add_load_statement(self, target, path, symbols):
+        command = f"new_load {path} {symbols}"
+        self.execute_command(command, target + ":__pkg__")
 
-# replace_load <path> <[to=]from(s)>: Similar to new_load, but removes existing load statements for the requested symbols before adding new loads.
-# substitute_load <old_regexp> <new_template> Replaces modules of loads which match old_regexp according to new_template. The regular expression must follow RE2 syntax. new_template may be a simple replacement string, but it may also expand numbered or named groups using $0 or $x.
-# comment <attr>? <value>? <comment>: Add a comment to a rule, an attribute, or a specific value in a list. Spaces in the comment should be escaped with backslashes.
-# print_comment <attr>? <value>?
-# delete: Delete a rule.
-# fix <fix(es)>?: Apply a fix.
-# move <old_attr> <new_attr> <value(s)>: Moves value(s) from the list old_attr to the list new_attr. The wildcard * matches all values.
-# new <rule_kind> <rule_name> [(before|after) <relative_rule_name>]: Add a new rule at the end of the BUILD file (before/after <relative_rule>). The identifier __pkg__ can be used to position rules relative to package().
-# print <attr(s)>
-# remove <attr>: Removes attribute attr. The wildcard * matches all attributes except name.
-# remove <attr> <value(s)>: Removes value(s) from the list attr. The wildcard * matches all attributes. Lists containing none of the value(s) are not modified.
-# remove_comment <attr>? <value>?: Removes the comment attached to the rule, an attribute, or a specific value in a list.
-# remove_if_equal <attr> <value>: Removes the attribute attr if its value is equal to value.
-# rename <old_attr> <new_attr>: Rename the old_attr to new_attr which must not yet exist.
-# substitute <attr> <old_regexp> <new_template>: Replaces string:as which match old_regexp in the list attr according to new_template. Wildcard * matches all attributes. The regular expression must follow RE2 syntax. new_template may be a simple replacement string, but it may also expand numbered or named groups using $0 or $x. Lists without strings that match old_regexp are not modified.
-# set <attr> <value(s)>: Sets the value of an attribute. If the attribute was already present, its old value is replaced.
-# set_if_absent <attr> <value(s)>: Sets the value of an attribute. If the attribute was already present, no action is taken.
-# set kind <value>: Set the target type to value.
-# set_select <attr> <key_1> <value_1> <key_n> <value_n>
-# copy <attr> <from_rule>: Copies the value of attr between rules. If it exists in the to_rule, it will be overwritten.
-# copy_no_overwrite <attr> <from_rule>: Copies the value of attr between rules. If it exists in the to_rule, no action is taken.
-# dict_add <attr> <(key:value)(s)>: Sets the value of a key for the dict attribute attr. If the key was already present, it will not be overwritten
-# dict_set <attr> <(key:value)(s)>: Sets the value of a key for the dict attribute attr. If the key was already present, its old value is replaced.
-# dict_remove <attr> <key(s)>: Deletes the key for the dict attribute attr.
-# dict_list_add <attr> <key> <value(s)>: Adds value(s) to the list in the dict attribute attr.
-# The following commands only apply to MODULE.bazel files (e.g. the target //MODULE.bazel:__pkg__):
-# use_repo_add [dev] <extension .bzl file> <extension name> <repo(s)>: Ensures that the given repositories generated by the given extension are imported via use_repo. If the dev argument is given, extension usages with dev_dependency = True will be considered instead.
-# use_repo_remove [dev] <extension .bzl file> <extension name> <repo(s)>: Ensures that the given repositories generated by the given extension are not imported via use_repo. If the dev argument is given, extension usages with dev_dependency = True will be considered instead.
+    def replace_load_statement(self, target, path, symbols):
+        command = f"replace_load {path} {symbols}"
+        self.execute_command(command, target + ":__pkg__")
 
+    # def substitute_load(self, target, old_regexp, new_template):
+    #     command = f"substitute_load {old_regexp} {new_template}"
+    #     self.execute_command(command, target)
 
+    # def comment(self, target, attribute=None, value=None, comment=""):
+    #     if attribute and value:
+    #         command = f"comment {attribute} {value} {comment}"
+    #     elif attribute:
+    #         command = f"comment {attribute} {comment}"
+    #     else:
+    #         command = f"comment {comment}"
+    #     self.execute_command(command, target)
 
+    # def print_comment(self, target, attribute=None, value=None):
+    #     if attribute and value:
+    #         command = f"print_comment {attribute} {value}"
+    #     elif attribute:
+    #         command = f"print_comment {attribute}"
+    #     else:
+    #         command = "print_comment"
+    #     self.execute_command(command, target)
 
+    def delete(self, target):
+        command = "delete"
+        self.execute_command(command, target)
 
+    # def move(self, target, old_attr, new_attr, values):
+    #     command = f"move {old_attr} {new_attr} {values}"
+    #     self.execute_command(command, target)
 
+    def new_rule(self, target, rule_kind, rule_name, relative_rule=None, position=""):
+        if relative_rule:
+            command = f"new {rule_kind} {rule_name} {position} {relative_rule}"
+        else:
+            command = f"new {rule_kind} {rule_name} {position}"
+        self.execute_command(command, target)
 
+    def print_attribute(self, target, attributes):
+        command = f"print {' '.join(attributes)}"
+        self.execute_command(command, target)
+
+    def remove_attribute(self, target, attribute):
+        command = f"remove {attribute}"
+        self.execute_command(command, target)
+
+    def remove_attribute_value(self, target, attribute, values):
+        command = f"remove {attribute} {values}"
+        self.execute_command(command, target)
+
+    # def remove_comment(self, target, attribute=None, value=None):
+    #     if attribute and value:
+    #         command = f"remove_comment {attribute} {value}"
+    #     elif attribute:
+    #         command = f"remove_comment {attribute}"
+    #     else:
+    #         command = "remove_comment"
+    #     self.execute_command(command, target)
+
+    # def remove_if_equal(self, target, attribute, value):
+    #     command = f"remove_if_equal {attribute} {value}"
+    #     self.execute_command(command, target)
+
+    def rename_attribute(self, target, old_attr, new_attr):
+        command = f"rename {old_attr} {new_attr}"
+        self.execute_command(command, target)
+
+    def set_attribute(self, target, attribute, values):
+        command = f"set {attribute} {values}"
+        self.execute_command(command, target)
+
+    def set_if_absent_attribute(self, target, attribute, values):
+        command = f"set_if_absent {attribute} {values}"
+        self.execute_command(command, target)
 
