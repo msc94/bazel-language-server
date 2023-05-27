@@ -2,6 +2,7 @@ import ast
 import enum
 import logging
 from collections import deque
+from typing import Optional
 
 
 class BazelFileContextType(enum.Enum):
@@ -22,7 +23,7 @@ class BazelFile:
     def __init__(self, contents):
         self._ast = ast.parse(contents)
 
-    def get_context(self, row, column) -> BazelFileContext:
+    def get_context(self, row, column) -> Optional[BazelFileContext]:
         # Note that ast lines are 1-indexed, we take 0-indexed line numbers
         row += 1
 
