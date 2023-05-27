@@ -1,18 +1,9 @@
-import sys
-import os
+from external.buildozer.buildozer import BazelBuildozerWrapper
+from utils.paths import get_bazel_example_workspace
 
-# Get the parent folder path
-parent_folder = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-
-# Add the parent folder to sys.path
-sys.path.append(parent_folder)
-
-
-from buildozer import BazelBuildozerWrapper
 
 def test_buildozer():
-    print(parent_folder)
-    workspace = parent_folder + "/../../../example/" # TODO: change if refactoring and fodler movement
+    workspace = get_bazel_example_workspace()
     wrapper = BazelBuildozerWrapper(workspace, "buildozer")
 
     # target = "//main:BUILD"
@@ -32,8 +23,7 @@ def test_buildozer():
     path = "//path/to/load_file"
     symbols = "symbol1 symbol2"
     wrapper.add_load_statement(target, path, symbols)
-    wrapper.replace_load_statement(target, path+"2", "symbol1")
+    wrapper.replace_load_statement(target, path + "2", "symbol1")
 
 
 test_buildozer()
-

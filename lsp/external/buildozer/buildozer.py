@@ -1,5 +1,6 @@
 import subprocess
 
+
 class BazelBuildozerWrapper:
     def __init__(self, workspace_path, buildozer_path):
         self.workspace_path = workspace_path
@@ -7,9 +8,11 @@ class BazelBuildozerWrapper:
 
     def execute_command(self, command, target):
         full_command = [self.buildozer_path] + [command] + [target]
-        print(' '.join(full_command))
+        print(" ".join(full_command))
         try:
-            output = subprocess.run(full_command, cwd=self.workspace_path, capture_output=True, check=True)
+            output = subprocess.run(
+                full_command, cwd=self.workspace_path, capture_output=True, check=True
+            )
             print(output.stdout)
         except subprocess.CalledProcessError as e:
             print(e.stderr)
@@ -106,4 +109,3 @@ class BazelBuildozerWrapper:
     def set_if_absent_attribute(self, target, attribute, values):
         command = f"set_if_absent {attribute} {values}"
         self.execute_command(command, target)
-
