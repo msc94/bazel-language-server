@@ -23,13 +23,12 @@ def _get_default_config() -> dict:
 
 
 def get_config_file() -> configparser.ConfigParser:
-    path = _get_config_directory().joinpath("bazel-lsp").joinpath("config.ini")
-    logging.info(f"Loading config from {path}")
-
     parser = configparser.ConfigParser()
     parser.read_dict(_get_default_config())
 
+    path = _get_config_directory().joinpath("bazel-lsp").joinpath("config.ini")
     if path.exists():
+        logging.info(f"Loading config from {path}")
         with open(path, "r") as f:
             parser.read_file(f)
     else:
