@@ -28,6 +28,10 @@ def references(file_path_and_position: FilePathAndPosition) -> Optional[List[Fil
         query = BazelQuery(directory_path)
         rdeps = query.get_target_rdeps(target, 1)
         return rdeps
+    if context.type == BazelFileContextType.DEPENDENCY:
+        query = BazelQuery(directory_path)
+        rdeps = query.get_target_rdeps(context.text, 1)
+        return rdeps
     else:
         logging.error(f"Unhandled context type {context.type}")
         return None
