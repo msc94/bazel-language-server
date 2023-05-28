@@ -2,7 +2,10 @@ import ast
 import enum
 import logging
 from collections import deque
+from dataclasses import dataclass
 from typing import Optional
+
+from utils.file import FilePosition
 
 
 class BazelFileContextType(enum.Enum):
@@ -13,28 +16,26 @@ class BazelFileContextType(enum.Enum):
     FILE = 4
 
 
+@dataclass
 class BazelFileContext:
-    def __init__(self, text: str, type: BazelFileContextType):
-        self.text = text
-        self.type = type
+    text: str
+    type: BazelFileContextType
 
 
 class BazelFile:
     def __init__(self, contents):
         self._ast = ast.parse(contents)
 
-    def get_context(self, row, column) -> Optional[BazelFileContext]:
+    def get_context(self, position: FilePosition) -> Optional[BazelFileContext]:
         # Note that ast lines are 1-indexed, we take 0-indexed line numbers
-        row += 1
-
-        node_under_cursor = self._find_deepest_node_at_position(row, column)
+        node_under_cursor = self._find_deepest_node_at_position(position.row + 1, position.column)
 
         if not node_under_cursor:
-            logging.info(f"No nodes at {row}, {column}")
+            logging.info(f"No nodes at {position}")
             return None
 
         if not isinstance(node_under_cursor, ast.Constant):
-            logging.info(f"Cursor not over string at {row}, {column}")
+            logging.info(f"Cursor not over string at {position}")
             return None
 
         keyword = self._get_node_keyword(node_under_cursor)

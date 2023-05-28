@@ -1,4 +1,5 @@
-from bazel.bazel_file import BazelFile, BazelFileContextType
+from bazel.file import BazelFile, BazelFileContextType
+from utils.file import FilePosition
 
 bzl_contents = """                  # Line 0
 load("@rules_cc//cc:defs.bzl", "cc_binary", "cc_library")
@@ -21,13 +22,13 @@ cc_binary(
 
 def test_name():
     file = BazelFile(bzl_contents)
-    context = file.get_context(4, 15)
+    context = file.get_context(FilePosition(4, 15))
     assert context.text == "hello-greet"
     assert context.type == BazelFileContextType.NAME
 
 
 def test_dep():
     file = BazelFile(bzl_contents)
-    context = file.get_context(14, 19)
+    context = file.get_context(FilePosition(14, 19))
     assert context.text == "//lib:hello-time"
     assert context.type == BazelFileContextType.DEPENDENCY
