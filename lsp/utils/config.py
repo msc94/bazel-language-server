@@ -15,7 +15,11 @@ def _get_config_directory() -> Path:
 
 
 def _get_default_config() -> dict:
-    return {"references": {"universe": "//..."}}
+    return {
+        "references": {
+            "universe": "//...",
+        },
+    }
 
 
 def get_config_file() -> configparser.ConfigParser:
