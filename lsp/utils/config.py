@@ -33,7 +33,7 @@ def get_config_file() -> configparser.ConfigParser:
         with open(path, "r") as f:
             parser.read_file(f)
     else:
-        logging.warning("Config file {path} does not exist, writing default...")
+        logging.warning(f"Config file {path} does not exist, writing default...")
 
     # Write out config again, adding any new values from the default config
     with open(path, "w") as f:
