@@ -42,14 +42,14 @@ def definition(file_path_and_position: FilePathAndPosition) -> Optional[FilePath
         logging.debug(f"Go to target {target} relative to {directory_path}")
 
         query = BazelQuery(directory_path)
-        file_path_and_position = query.get_target_location(target)
+        query_result = query.get_target_location(target)
 
-        if file_path_and_position is None:
+        if query_result is None:
             logging.error(f"Could not get location for target {target} relative to {directory_path}")
             return None
 
         logging.debug(f"Go to position {file_path_and_position}")
-        return file_path_and_position
+        return query_result
     else:
         logging.error(f"Unhandled context type {context.type}")
         return None

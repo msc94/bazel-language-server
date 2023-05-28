@@ -43,6 +43,7 @@ class FilePathAndPosition:
                 f"FilePathAndPosition: {self.path} is not a file"
             )
 
+    @staticmethod
     def from_lsp_uri_and_position(uri: str, pos: Position):
         return FilePathAndPosition(Path(uris.to_fs_path(uri)), FilePosition.from_lsp_position(pos))
 
