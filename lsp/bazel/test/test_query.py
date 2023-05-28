@@ -36,7 +36,7 @@ def test_get_target_rdeps():
     query = BazelQuery(example_workspace)
 
     target = "//lib:hello-time"
-    rdeps = query.get_target_rdeps(target, 1)
+    rdeps = query.get_target_rdeps(target, universe="//...", depth=1)
 
     assert len(rdeps) == 2
 

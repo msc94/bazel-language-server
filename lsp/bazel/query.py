@@ -30,14 +30,15 @@ class BazelQuery:
 
         return self._parse_location(locations[0])
 
-    def get_target_rdeps(self, target: str, depth: Optional[int] = None) -> Optional[List[FilePathAndPosition]]:
-        logging.debug(f"Querying rdeps of target {target} in {self._root_path} with depth of {depth}")
+    def get_target_rdeps(self, target: str, universe: str, depth: Optional[int] = None) -> Optional[List[FilePathAndPosition]]:
+        logging.debug(
+            f"Querying rdeps of target {target} in {self._root_path}, universe {universe}, depth of {depth}")
 
         # rdeps(universe, x, depth)
         if depth is None:
-            query = f"rdeps(//..., {target})"
+            query = f"rdeps({universe}, {target})"
         else:
-            query = f"rdeps(//..., {target}, {depth})"
+            query = f"rdeps({universe}, {target}, {depth})"
 
         rdeps = self._execute_query(query, "location")
         logging.debug(f"Reverse dependencies: {rdeps}")

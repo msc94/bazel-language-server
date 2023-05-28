@@ -6,7 +6,7 @@ from bazel.query import BazelQuery
 from utils.file import FilePathAndPosition, read_text_file
 
 
-def references(file_path_and_position: FilePathAndPosition) -> Optional[List[FilePathAndPosition]]:
+def references(file_path_and_position: FilePathAndPosition, universe: str) -> Optional[List[FilePathAndPosition]]:
     logging.info(f"Getting references at {file_path_and_position}")
 
     file_path = file_path_and_position.path
@@ -26,11 +26,11 @@ def references(file_path_and_position: FilePathAndPosition) -> Optional[List[Fil
     if context.type == BazelFileContextType.NAME:
         target = f":{context.text}"
         query = BazelQuery(directory_path)
-        rdeps = query.get_target_rdeps(target, 1)
+        rdeps = query.get_target_rdeps(target, universe=universe, depth=1)
         return rdeps
     if context.type == BazelFileContextType.DEPENDENCY:
         query = BazelQuery(directory_path)
-        rdeps = query.get_target_rdeps(context.text, 1)
+        rdeps = query.get_target_rdeps(context.text, universe=universe, depth=1)
         return rdeps
     else:
         logging.error(f"Unhandled context type {context.type}")
