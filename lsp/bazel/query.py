@@ -21,14 +21,32 @@ class BazelQuery:
         logging.debug(f"Locations: {locations}")
 
         if len(locations) == 0:
-            logging.warning(f"Could not get location of Bazel target {target} in {self._root_path}")
+            logging.warning(f"Could not get location for {target} in {self._root_path}")
             return None
 
         if len(locations) > 1:
-            logging.warning(f"Got more than one location for Bazel target {target} in {self._root_path}")
+            logging.warning(f"Got more than one location for {target} in {self._root_path}")
             return None
 
         return self._parse_location(locations[0])
+
+    def get_target_rdeps(self, target: str, depth: Optional[int] = None) -> Optional[List[FilePathAndPosition]]:
+        logging.debug(f"Querying rdeps of target {target} in {self._root_path} with depth of {depth}")
+
+        # rdeps(universe, x, depth)
+        if depth is None:
+            query = f"rdeps(//..., {target})"
+        else:
+            query = f"rdeps(//..., {target}, {depth})"
+
+        rdeps = self._execute_query(query, "location")
+        logging.debug(f"Reverse dependencies: {rdeps}")
+
+        if len(rdeps) == 0:
+            logging.warning(f"Failed to get rdeps for {target} in {self._root_path}")
+            return None
+
+        return [self._parse_location(x) for x in rdeps]
 
     def _parse_location(self, location: str) -> FilePathAndPosition:
         parts = location.split(":")

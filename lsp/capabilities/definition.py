@@ -1,13 +1,9 @@
 import logging
-from pathlib import Path
 from typing import Optional
 
-from lsprotocol.types import Definition, DefinitionParams, Location
 
-import utils.paths as paths
-from bazel.file import BazelFile, BazelFileContext, BazelFileContextType
+from bazel.file import BazelFile, BazelFileContextType
 from bazel.query import BazelQuery
-from bazel.workspace import get_workspace_root
 from utils.file import FilePathAndPosition, FilePosition, read_text_file
 
 
@@ -27,7 +23,7 @@ def definition(file_path_and_position: FilePathAndPosition) -> Optional[FilePath
             f"No context found at {file_path_and_position}")
         return None
 
-    logging.debug(f"Context: {context.text}, Type: {context.type}")
+    logging.debug(f"Context: {context.text}, type: {context.type}")
 
     if context.type == BazelFileContextType.FILE:
         document_path = directory_path.joinpath(context.text)
@@ -48,10 +44,8 @@ def definition(file_path_and_position: FilePathAndPosition) -> Optional[FilePath
             logging.error(f"Could not get location for target {target} relative to {directory_path}")
             return None
 
-        logging.debug(f"Go to position {file_path_and_position}")
+        logging.debug(f"Found definition at {file_path_and_position}")
         return query_result
     else:
         logging.error(f"Unhandled context type {context.type}")
         return None
-
-    return None
