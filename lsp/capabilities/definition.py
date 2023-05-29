@@ -33,6 +33,7 @@ def definition(file_path_and_position: FilePathAndPosition) -> Optional[FilePath
 
         logging.debug(f"Go to position {file_path_and_position}")
         return file_path_and_position
+
     if context.type == BazelFileContextType.DEPENDENCY:
         target = context.text
         logging.debug(f"Go to target {target} relative to {directory_path}")
@@ -46,6 +47,7 @@ def definition(file_path_and_position: FilePathAndPosition) -> Optional[FilePath
 
         logging.debug(f"Found definition at {file_path_and_position}")
         return query_result
+
     else:
         logging.error(f"Unhandled context type {context.type}")
         return None

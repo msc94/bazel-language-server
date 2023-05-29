@@ -61,3 +61,40 @@ def read_text_file(file_path: Path) -> str:
 
     with open(file_path, "r") as f:
         return f.read()
+
+
+def get_line_from_file(file_path, line):
+    with open(file_path, 'r') as file:
+        lines = file.readlines()
+        if 0 <= line < len(lines):
+            return lines[line - 1]
+    return None
+
+import logging
+import re
+
+#TODO: this is really fragile and shity. It should be handeled when full bazel ast is made
+def get_target_at_position(file_path, row, col):
+    line = get_line_from_file(file_path, row)
+    if line is None:
+        return None
+
+    pattern = r"[ ,\"'/]\[]"
+    start = end = -1
+    match = re.search(pattern, line[:col])
+    if match:
+        logging.debug(f"match: {match.group()[:-1]}")
+        start = match.start()
+
+    logging.debug(f"LINE: {line}")
+
+    match = re.search(pattern, line[start:])
+    if match:
+        end = match.start()
+
+    logging.debug(f"row: {row} col:{col}")
+    logging.debug(f"start: {start} end:{end}")
+    logging.debug(f"Found string {line[start:end]}")
+
+    return line[start:end]
+

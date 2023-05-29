@@ -3,15 +3,17 @@
 import logging
 from typing import List, Optional
 
-from lsprotocol.types import (TEXT_DOCUMENT_DEFINITION,
-                              TEXT_DOCUMENT_REFERENCES, TEXT_DOCUMENT_RENAME,
-                              Definition, DefinitionParams, Location,
-                              ReferenceParams, RenameOptions, RenameParams,
-                              WorkspaceEdit)
+from lsprotocol.types import (Location, WorkspaceEdit)
+from lsprotocol.types import (TEXT_DOCUMENT_DEFINITION, Definition, DefinitionParams)
+from lsprotocol.types import (TEXT_DOCUMENT_REFERENCES, ReferenceParams)
+from lsprotocol.types import (TEXT_DOCUMENT_RENAME, RenameOptions, RenameParams)
+from lsprotocol.types import (TEXT_DOCUMENT_PREPARE_RENAME, PrepareRenameParams) # Only if rename needs to be verified
+
 from pygls.server import LanguageServer
 
 from capabilities.definition import definition
 from capabilities.references import references
+from capabilities.rename import rename
 from utils.config import get_config_file
 from utils.file import FilePathAndPosition
 
@@ -52,10 +54,23 @@ def lsp_references(params: ReferenceParams) -> Optional[List[Location]]:
 
     return [x.to_lsp_location() for x in result]
 
-
-@server.feature(TEXT_DOCUMENT_RENAME, RenameOptions(prepare_provider=True))
+# @server.feature(TEXT_DOCUMENT_PREPARE_RENAME)
+# def rename(params: PrepareRenameParams) -> Optional[Union[Range, PrepareRenameResult]]:
+@server.feature(TEXT_DOCUMENT_RENAME, RenameOptions(prepare_provider=False))
 def lsp_rename(params: RenameParams) -> Optional[WorkspaceEdit]:
-    return None  # return WorkspaceEdit(**workspace_edit)
+    logging.info("Handling rename request")
+    uri = params.text_document.uri
+    position = params.position
+    file_path_and_position = FilePathAndPosition.from_lsp_uri_and_position(uri, position)
+    result = rename(file_path_and_position, params.new_name)
+
+    if result is None:
+        logging.warning("Failed handling request")
+        return None
+
+    logging.info(result)
+
+    return WorkspaceEdit(**result)
 
 
 logging.info("Starting bazel LSP")

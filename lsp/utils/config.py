@@ -34,6 +34,9 @@ def get_config_file() -> configparser.ConfigParser:
     else:
         logging.warning(f"Config file {path} does not exist, writing default...")
 
+    # Create the directory path if it doesn't exist
+    os.makedirs(os.path.dirname(path), exist_ok=True)
+
     # Write out config again, adding any new values from the default config
     with open(path, "w") as f:
         parser.write(f)
